@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <body style="margin : 0px; overflow: hidden;">
+        <a-scene embedded arjs>
+            <a-marker preset="hiro">
+                <a-light type="ambient" color="#white" intensity="0.7"></a-light>
+                <a-light type="directional" color="#FFF" intensity="0.5" position="-1 1 2"></a-light>
+                <a-entity
+                    position="0 0 0"
+                    rotation="0 0 90"
+                    scale="10 10 10"
+                    animation="property: rotation; to: 0 360 0; loop: true; dur: 5000"
+                    gltf-model="https://drive.google.com/uc?export=download&id=1klsHwrtem8AQWCZIfC1yMtnrzaan_ptg">
+                </a-entity>
+            </a-marker>
+            <a-entity camera></a-entity>
+        </a-scene>
+    </body>
+</html>
