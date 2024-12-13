@@ -14,11 +14,20 @@
     </style>
   </head>
   <body>
+    <script>
+      window.addEventListener('camera-error', function() {
+        console.log('เกิดข้อผิดพลาดในการเข้าถึงกล้อง');
+      });
+
+      window.addEventListener('camera-init', function() {
+        console.log('กล้องพร้อมใช้งาน');
+      });
+    </script>
     <a-scene embedded arjs="trackingMethod: best; sourceType: webcam;">
       <!-- ใช้ NFT Tracking -->
       <a-nft
         type="nft"
-        url="markers/deksomboon.fset"
+        url="markers/deksomboon"
         smooth="true"
         smoothCount="10"
         smoothTolerance="0.01"
