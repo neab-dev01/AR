@@ -37,6 +37,10 @@ AFRAME.registerComponent("throw-model", {
 	throwObject: function () {
 		if (this.isThrown) return;
 
+		// ใช้ค่า power จากตัวแปร Global
+		const power = window.throwingPower.value;
+		this.initialVelocity = 15 * (power / 100);
+
 		this.isThrown = true;
 		this.throwStartTime = Date.now();
 
