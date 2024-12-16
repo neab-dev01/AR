@@ -5,25 +5,29 @@
   <script src="./joystick.js"></script>
   <script src="./throw-model.js"></script>
   <script src="./distance-display.js"></script>
-  <body style="margin: 0; overflow: hidden;">
-    <a-scene 
-      embedded 
+  <body style="margin: 0; overflow: hidden">
+    <a-scene
+      embedded
       arjs="trackingMethod: best; debugUIEnabled: false;"
       vr-mode-ui="enabled: false"
       throw-model
       marker-distance
     >
       <a-assets>
-        <a-asset-item id="throwing-model" src="./models/UFO_Empty.glb"></a-asset-item>
+        <a-asset-item
+          id="throwing-model"
+          src="./models/UFO_Empty.glb"
+        ></a-asset-item>
       </a-assets>
 
-      <a-marker preset="hiro">        
+      <a-marker type="pattern" url="./markers/Pattern/D/pattern-d.patt">
         <a-entity
           id="santa-model"
-          position="0 0 0.5"
-          rotation="180 0 0"
-          scale="0.01 0.01 0.01"
-          obj-model="obj: ./models/Santa_Claus_v1_L2.123cb4fe07b2-55dd-461b-9f27-42ccf1b3f3f5/12165_Santa_Claus_v1_l2.obj; mtl: ./models/Santa_Claus_v1_L2.123cb4fe07b2-55dd-461b-9f27-42ccf1b3f3f5/12165_Santa_Claus_v1_l2.mtl"
+          position="0 0 0"
+          rotation="225 0 0"
+          scale="0.3 0.3 0.3"
+          geometry="primitive: torus; radius: 1; radiusTubular: 0.1"
+          material="color: red"
         >
         </a-entity>
       </a-marker>
