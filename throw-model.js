@@ -76,28 +76,51 @@ AFRAME.registerComponent("throw-model", {
   updatePosition: function () {
     if (!this.isThrown) return;
 
-    const t = (Date.now() - this.throwStartTime) / 1000; // เวลาที่ผ่านไป (วินาที)
-    const angleRad = (this.angle * Math.PI) / 180; // แปลงมุมเป็นเรเดียน
+    const t = (Date.now() - this.throwStartTime) / 1000;
+    const angleRad = (this.angle * Math.PI) / 180;
 
-    // คำนวณตำแหน่งตามสมการโปรเจคไตล์
     const v0 = this.initialVelocity;
-    const x = -v0 * Math.cos(angleRad) * t; // ลบเพราะแกน z คือแนวลึก
+    const x = -v0 * Math.cos(angleRad) * t;
     const y = v0 * Math.sin(angleRad) * t - 0.5 * this.gravity * t * t;
-    const z = -2 + x; // -2 คือตำแหน่งเริ่มต้นในแกน z
+    const z = -2 + x;
 
-    // อัพเดทตำแหน่ง
     this.ufo.setAttribute("position", `0 ${y} ${z}`);
 
     // อัพเดทค่าแสดงผล
-    document.getElementById("x-distance").textContent = Math.abs(x).toFixed(2);
+    const xDistance = Math.abs(x);
+    document.getElementById("x-distance").textContent = xDistance.toFixed(2);
     document.getElementById("y-distance").textContent = y.toFixed(2);
 
+    // เช็คระยะทางและเปลี่ยนสีห่วง
+    const ring = document.querySelector("#santa-model");
+    
+    // ดึงค่าระยะห่างจริงจาก Global variable
+    const markerX = Math.abs(window.markerDistance.z);
+    const markerY = window.markerDistance.y;
+    
+    // คำนวณช่วง tolerance 10%
+    const toleranceX = markerX * 0.1;
+    const minX = markerX - toleranceX;
+    const maxX = markerX + toleranceX;
+
+	const toleranceY = markerY * 1;
+    const minY = markerY - toleranceY;
+    const maxY = markerY + toleranceY;
+
+    // เช็คว่า xDistance อยู่ในช่วง ±10% ของระยะห่างจริง
+    if (xDistance >= minX && xDistance <= maxX ) {
+      ring.setAttribute("material", "color: #00ff00");
+    } else {
+      ring.setAttribute("material", "color: #ff0000");
+    }
+
     // เช็คว่าจบการเคลื่อนที่หรือยัง
-    if (y < 0 || z < -20) {
+    if (y < -10 || z < -30) {
       // ถ้าตกถึงพื้นหรือไปไกลเกินไป
       // รีเซ็ต
       this.isThrown = false;
       this.ufo.setAttribute("position", this.data.defaultPosition);
+      ring.setAttribute("material", "color: #ff0000"); // รีเซ็ตสีห่วงกลับเป็นสีแดง
       cancelAnimationFrame(this.animationLoop);
 
       // รีเซ็ตค่าแสดงผล
