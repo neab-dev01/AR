@@ -73,6 +73,28 @@ AFRAME.registerComponent("throw-model", {
     this.animationLoop = requestAnimationFrame(() => this.updatePosition());
   },
 
+  checkCollision: function (ufoPosition) {
+    const ring = document.querySelector("#santa-model");
+    if (!ring) return false;
+
+    const ringPosition = ring.getAttribute("position");
+
+    // ระยะห่างที่ยอมรับได้สำหรับการผ่านห่วง (ปรับตามความเหมาะสม)
+    const threshold = 0.5;
+
+    // เช็คว่า UFO อยู่ใกล้ห่วงพอหรือไม่
+    const xDiff = Math.abs(ufoPosition.x - ringPosition.x);
+    const yDiff = Math.abs(ufoPosition.y - ringPosition.y);
+    const zDiff = Math.abs(ufoPosition.z - ringPosition.z);
+
+    if (xDiff < threshold && yDiff < threshold && zDiff < threshold) {
+      // เปลี่ยนสีห่วงเป็นสีเขียว
+      ring.setAttribute("material", "color", "green");
+      return true;
+    }
+    return false;
+  },
+
   updatePosition: function () {
     if (!this.isThrown) return;
 
@@ -87,6 +109,9 @@ AFRAME.registerComponent("throw-model", {
 
     // อัพเดทตำแหน่ง
     this.ufo.setAttribute("position", `0 ${y} ${z}`);
+
+    // เช็คการชนกับห่วง
+    this.checkCollision({ x: 0, y: y, z: z });
 
     // อัพเดทค่าแสดงผล
     document.getElementById("x-distance").textContent = Math.abs(x).toFixed(2);
