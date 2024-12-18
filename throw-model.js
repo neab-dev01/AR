@@ -6,27 +6,32 @@ AFRAME.registerComponent("throw-model", {
   init: function () {
     this.isThrown = false;
     this.throwStartTime = 0;
-    this.initialVelocity = 15; // ความเร็วต้น
-    this.angle = 45; // มุมยิง (องศา)
-    this.gravity = 9.8; // ค่าแรงโน้มถ่วง
+    this.initialVelocity = 15;
+    this.angle = 45;
+    this.gravity = 9.8;
+
+    // แยกค่าพิกัดเริ่มต้นจาก defaultPosition
+    const [x, y, z] = this.data.defaultPosition.split(' ').map(Number);
+    this.defaultY = y;
+    this.defaultZ = z;
 
     //! สร้าง UI สำหรับแสดงค่าพิกัด ----------------
     const distanceDisplay = document.createElement("div");
     distanceDisplay.style.cssText = `
-			position: fixed;
-			top: 10px;
-			right: 10px;
-			background: rgba(0,0,0,0.7);
-			color: white;
-			padding: 10px;
-			z-index: 999;
-			border-radius: 5px;
-			font-family: Arial, sans-serif;
-		`;
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 10px;
+      z-index: 999;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+    `;
     distanceDisplay.innerHTML = `
-			<div>ระยะทางแนวนอน: <span id="x-distance">0.00</span> เมตร</div>
-			<div>ความสูง: <span id="y-distance">0.00</span> เมตร</div>
-		`;
+      <div>ระยะทางแนวลึก: <span id="z-distance">${this.defaultZ}</span> เมตร</div>
+      <div>ความสูง: <span id="y-distance">${this.defaultY}</span> เมตร</div>
+    `;
     document.body.appendChild(distanceDisplay);
     //! สร้าง UI สำหรับแสดงค่าพิกัด ----------------
 
@@ -73,28 +78,6 @@ AFRAME.registerComponent("throw-model", {
     this.animationLoop = requestAnimationFrame(() => this.updatePosition());
   },
 
-  checkCollision: function (ufoPosition) {
-    const ring = document.querySelector("#santa-model");
-    if (!ring) return false;
-
-    const ringPosition = ring.getAttribute("position");
-
-    // ระยะห่างที่ยอมรับได้สำหรับการผ่านห่วง (ปรับตามความเหมาะสม)
-    const threshold = 0.5;
-
-    // เช็คว่า UFO อยู่ใกล้ห่วงพอหรือไม่
-    const xDiff = Math.abs(ufoPosition.x - ringPosition.x);
-    const yDiff = Math.abs(ufoPosition.y - ringPosition.y);
-    const zDiff = Math.abs(ufoPosition.z - ringPosition.z);
-
-    if (xDiff < threshold && yDiff < threshold && zDiff < threshold) {
-      // เปลี่ยนสีห่วงเป็นสีเขียว
-      ring.setAttribute("material", "color", "green");
-      return true;
-    }
-    return false;
-  },
-
   updatePosition: function () {
     if (!this.isThrown) return;
 
@@ -102,38 +85,32 @@ AFRAME.registerComponent("throw-model", {
     const angleRad = (this.angle * Math.PI) / 180;
 
     const v0 = this.initialVelocity;
-    const x = -v0 * Math.cos(angleRad) * t;
-    const y = v0 * Math.sin(angleRad) * t - 0.5 * this.gravity * t * t;
-    const z = -2 + x;
+    const y = this.defaultY + (v0 * Math.sin(angleRad) * t - 0.5 * this.gravity * t * t);
+    const z = this.defaultZ + (-v0 * Math.cos(angleRad) * t);
 
     this.ufo.setAttribute("position", `0 ${y} ${z}`);
 
-    // เช็คการชนกับห่วง
-    this.checkCollision({ x: 0, y: y, z: z });
-
-    // อัพเดทค่าแสดงผล
-    const xDistance = Math.abs(x);
-    document.getElementById("x-distance").textContent = xDistance.toFixed(2);
+    document.getElementById("z-distance").textContent = z.toFixed(2);
     document.getElementById("y-distance").textContent = y.toFixed(2);
 
     // เช็คระยะทางและเปลี่ยนสีห่วง
     const ring = document.querySelector("#santa-model");
     
-    // ดึงค่าระยะห่างจริงจาก Global variable
-    const markerX = Math.abs(window.markerDistance.z);
+    // ดึงค่าระยะห่างจริงจาก Global variable - ใช้ z
+    const markerZ = window.markerDistance.z;
     const markerY = window.markerDistance.y;
     
-    // คำนวณช่วง tolerance 10%
-    const toleranceX = markerX * 0.1;
-    const minX = markerX - toleranceX;
-    const maxX = markerX + toleranceX;
-
-	const toleranceY = markerY * 1;
+    // คำนวณช่วง tolerance 10% สำหรับแกน Z และ Y
+    const toleranceZ = Math.abs(markerZ * 0.1);
+    const toleranceY = Math.abs(markerY * 0.15);
+    
+    const minZ = markerZ - toleranceZ;
+    const maxZ = markerZ + toleranceZ;
     const minY = markerY - toleranceY;
     const maxY = markerY + toleranceY;
 
-    // เช็คว่า xDistance อยู่ในช่วง ±10% ของระยะห่างจริง
-    if (xDistance >= minX && xDistance <= maxX ) {
+    // เช็คว่าทั้ง z และ y อยู่ในช่วง ±10% ของระยะห่างจริง
+    if (z >= minZ && z <= maxZ && y >= minY && y <= maxY) {
       ring.setAttribute("material", "color: #00ff00");
     } else {
       ring.setAttribute("material", "color: #ff0000");
@@ -141,18 +118,15 @@ AFRAME.registerComponent("throw-model", {
 
     // เช็คว่าจบการเคลื่อนที่หรือยัง
     if (y < -10 || z < -30) {
-      // ถ้าตกถึงพื้นหรือไปไกลเกินไป
-      // รีเซ็ต
       this.isThrown = false;
       this.ufo.setAttribute("position", this.data.defaultPosition);
-      ring.setAttribute("material", "color: #ff0000"); // รีเซ็ตสีห่วงกลับเป็นสีแดง
+      ring.setAttribute("material", "color: #ff0000");
       cancelAnimationFrame(this.animationLoop);
 
-      // รีเซ็ตค่าแสดงผล
-      document.getElementById("x-distance").textContent = "0.00";
-      document.getElementById("y-distance").textContent = "0.00";
+      // รีเซ็ตค่าแสดงผลโดยใช้ค่าจาก defaultPosition
+      document.getElementById("z-distance").textContent = this.defaultZ.toFixed(2);
+      document.getElementById("y-distance").textContent = this.defaultY.toFixed(2);
     } else {
-      // ทำ animation ต่อ
       this.animationLoop = requestAnimationFrame(() => this.updatePosition());
     }
   },
