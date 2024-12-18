@@ -89,7 +89,6 @@ AFRAME.registerComponent("throw-model", {
     const v0 = this.initialVelocity;
     const y = this.defaultY + (v0 * Math.sin(angleRad) * t - 0.5 * this.gravity * t * t);
     const z = this.defaultZ + (-v0 * Math.cos(angleRad) * t);
-    // ความกว้างการแกว่ง 2 เมตร, ความเร็ว 3 rad/s
     const x = this.defaultX 
 
     this.ufo.setAttribute("position", `${x} ${y} ${z}`);
@@ -109,7 +108,7 @@ AFRAME.registerComponent("throw-model", {
     // คำนวณช่วง tolerance สำหรับทุกแกน
     const toleranceZ = Math.abs(markerZ * 0.1);
     const toleranceY = Math.abs(markerY * 0.15)+0.1;
-    const toleranceX = Math.abs(markerX );
+    const toleranceX = 0.3;
     
     const minZ = markerZ - toleranceZ;
     const maxZ = markerZ + toleranceZ;
