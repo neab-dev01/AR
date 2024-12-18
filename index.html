@@ -5,6 +5,7 @@
   <script src="./joystick.js"></script>
   <script src="./throw-model.js"></script>
   <script src="./distance-display.js"></script>
+  <script src="./game-timer.js"></script>
   <body style="margin: 0; overflow: hidden">
     <a-scene
       embedded
@@ -12,6 +13,7 @@
       vr-mode-ui="enabled: false"
       throw-model
       marker-distance
+      game-timer
     >
       <a-assets>
         <a-asset-item
@@ -31,7 +33,6 @@
         >
         </a-entity>
       </a-marker>
-
       <a-entity camera></a-entity>
     </a-scene>
   </body>

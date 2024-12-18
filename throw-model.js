@@ -35,9 +35,9 @@ AFRAME.registerComponent("throw-model", {
       font-family: Arial, sans-serif;
     `;
     distanceDisplay.innerHTML = `
-      <div>ระยะทางแนวลึก: <span id="z-distance">${this.defaultZ}</span> เมตร</div>
-      <div>ความสูง: <span id="y-distance">${this.defaultY}</span> เมตร</div>
-      <div>ระยะทางแนวข้าง: <span id="x-distance">${this.defaultX}</span> เมตร</div>
+      <div>X: <span id="x-distance">${this.defaultX}</span> เมตร</div>
+      <div>Y: <span id="y-distance">${this.defaultY}</span> เมตร</div>
+      <div>Z: <span id="z-distance">${this.defaultZ}</span> เมตร</div>
     `;
     document.body.appendChild(distanceDisplay);
     //! สร้าง UI สำหรับแสดงค่าพิกัด ----------------
@@ -71,23 +71,26 @@ AFRAME.registerComponent("throw-model", {
     });
   },
 
-  startSway: function() {
+  startSway: function () {
     if (!this.isThrown) {
       const currentTime = Date.now();
       const deltaTime = currentTime - this.lastUpdate;
-      
+
       // คำนวณตำแหน่ง x แบบ sine wave
       const newX = Math.sin(currentTime * this.swaySpeed) * this.swayAmount;
       this.defaultX = newX;
-      
+
       if (this.ufo) {
         const currentPos = this.ufo.getAttribute("position");
-        this.ufo.setAttribute("position", `${newX} ${currentPos.y} ${currentPos.z}`);
-        
+        this.ufo.setAttribute(
+          "position",
+          `${newX} ${currentPos.y} ${currentPos.z}`
+        );
+
         // อัพเดทค่าแสดงผล x
         document.getElementById("x-distance").textContent = newX.toFixed(2);
       }
-      
+
       this.swayAnimation = requestAnimationFrame(() => this.startSway());
       this.lastUpdate = currentTime;
     }
@@ -95,10 +98,10 @@ AFRAME.registerComponent("throw-model", {
 
   throwObject: function () {
     if (this.isThrown) return;
-    
+
     // หยุดการแกว่งไปมา
     cancelAnimationFrame(this.swayAnimation);
-    
+
     // ใช้ค่า power จากตัวแปร Global
     const power = window.throwingPower.value;
     this.initialVelocity = 15 * (power / 100);
@@ -159,6 +162,7 @@ AFRAME.registerComponent("throw-model", {
       x <= maxX
     ) {
       ring.setAttribute("material", "color: #00ff00");
+      window.gameState.score += 1;
     } else {
       ring.setAttribute("material", "color: #ff0000");
     }
