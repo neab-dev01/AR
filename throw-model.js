@@ -1,7 +1,7 @@
 AFRAME.registerComponent("throw-model", {
   schema: {
     defaultPosition: { default: "0 -0.5 -2" },
-    scale: { default: "0.05 0.05 0.05" },
+    scale: { default: "0.02 0.02 0.02" },
   },
   init: function () {
     this.isThrown = false;
@@ -12,6 +12,7 @@ AFRAME.registerComponent("throw-model", {
 
     // แยกค่าพิกัดเริ่มต้นจาก defaultPosition
     const [x, y, z] = this.data.defaultPosition.split(' ').map(Number);
+    this.defaultX = x;
     this.defaultY = y;
     this.defaultZ = z;
 
@@ -31,6 +32,7 @@ AFRAME.registerComponent("throw-model", {
     distanceDisplay.innerHTML = `
       <div>ระยะทางแนวลึก: <span id="z-distance">${this.defaultZ}</span> เมตร</div>
       <div>ความสูง: <span id="y-distance">${this.defaultY}</span> เมตร</div>
+      <div>ระยะทางแนวข้าง: <span id="x-distance">${this.defaultX}</span> เมตร</div>
     `;
     document.body.appendChild(distanceDisplay);
     //! สร้าง UI สำหรับแสดงค่าพิกัด ----------------
@@ -87,30 +89,39 @@ AFRAME.registerComponent("throw-model", {
     const v0 = this.initialVelocity;
     const y = this.defaultY + (v0 * Math.sin(angleRad) * t - 0.5 * this.gravity * t * t);
     const z = this.defaultZ + (-v0 * Math.cos(angleRad) * t);
+    // ความกว้างการแกว่ง 2 เมตร, ความเร็ว 3 rad/s
+    const x = this.defaultX 
 
-    this.ufo.setAttribute("position", `0 ${y} ${z}`);
+    this.ufo.setAttribute("position", `${x} ${y} ${z}`);
 
     document.getElementById("z-distance").textContent = z.toFixed(2);
     document.getElementById("y-distance").textContent = y.toFixed(2);
+    document.getElementById("x-distance").textContent = x.toFixed(2);
 
     // เช็คระยะทางและเปลี่ยนสีห่วง
     const ring = document.querySelector("#santa-model");
     
-    // ดึงค่าระยะห่างจริงจาก Global variable - ใช้ z
+    // ดึงค่าระยะห่างจริงจาก Global variable
     const markerZ = window.markerDistance.z;
     const markerY = window.markerDistance.y;
+    const markerX = window.markerDistance.x;
     
-    // คำนวณช่วง tolerance 10% สำหรับแกน Z และ Y
+    // คำนวณช่วง tolerance สำหรับทุกแกน
     const toleranceZ = Math.abs(markerZ * 0.1);
-    const toleranceY = Math.abs(markerY * 0.15);
+    const toleranceY = Math.abs(markerY * 0.15)+0.1;
+    const toleranceX = Math.abs(markerX );
     
     const minZ = markerZ - toleranceZ;
     const maxZ = markerZ + toleranceZ;
     const minY = markerY - toleranceY;
     const maxY = markerY + toleranceY;
+    const minX = markerX - toleranceX;
+    const maxX = markerX + toleranceX;
 
-    // เช็คว่าทั้ง z และ y อยู่ในช่วง ±10% ของระยะห่างจริง
-    if (z >= minZ && z <= maxZ && y >= minY && y <= maxY) {
+    // เช็คว่าทั้ง x, y และ z อยู่ในช่วง tolerance ของระยะห่างจริง
+    if (z >= minZ && z <= maxZ && 
+        y >= minY && y <= maxY && 
+        x >= minX && x <= maxX) {
       ring.setAttribute("material", "color: #00ff00");
     } else {
       ring.setAttribute("material", "color: #ff0000");
@@ -126,6 +137,7 @@ AFRAME.registerComponent("throw-model", {
       // รีเซ็ตค่าแสดงผลโดยใช้ค่าจาก defaultPosition
       document.getElementById("z-distance").textContent = this.defaultZ.toFixed(2);
       document.getElementById("y-distance").textContent = this.defaultY.toFixed(2);
+      document.getElementById("x-distance").textContent = this.defaultX.toFixed(2);
     } else {
       this.animationLoop = requestAnimationFrame(() => this.updatePosition());
     }
