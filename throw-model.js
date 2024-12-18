@@ -11,10 +11,15 @@ AFRAME.registerComponent("throw-model", {
     this.gravity = 9.8;
 
     // แยกค่าพิกัดเริ่มต้นจาก defaultPosition
-    const [x, y, z] = this.data.defaultPosition.split(' ').map(Number);
+    const [x, y, z] = this.data.defaultPosition.split(" ").map(Number);
     this.defaultX = x;
     this.defaultY = y;
     this.defaultZ = z;
+
+    this.swayAmount = 0.5; // ระยะการเคลื่อนที่ซ้าย-ขวา
+    this.swaySpeed = 0.001; // ความเร็วในการเคลื่อนที่
+    this.lastUpdate = Date.now();
+    this.startSway();
 
     //! สร้าง UI สำหรับแสดงค่าพิกัด ----------------
     const distanceDisplay = document.createElement("div");
@@ -66,9 +71,34 @@ AFRAME.registerComponent("throw-model", {
     });
   },
 
+  startSway: function() {
+    if (!this.isThrown) {
+      const currentTime = Date.now();
+      const deltaTime = currentTime - this.lastUpdate;
+      
+      // คำนวณตำแหน่ง x แบบ sine wave
+      const newX = Math.sin(currentTime * this.swaySpeed) * this.swayAmount;
+      this.defaultX = newX;
+      
+      if (this.ufo) {
+        const currentPos = this.ufo.getAttribute("position");
+        this.ufo.setAttribute("position", `${newX} ${currentPos.y} ${currentPos.z}`);
+        
+        // อัพเดทค่าแสดงผล x
+        document.getElementById("x-distance").textContent = newX.toFixed(2);
+      }
+      
+      this.swayAnimation = requestAnimationFrame(() => this.startSway());
+      this.lastUpdate = currentTime;
+    }
+  },
+
   throwObject: function () {
     if (this.isThrown) return;
-
+    
+    // หยุดการแกว่งไปมา
+    cancelAnimationFrame(this.swayAnimation);
+    
     // ใช้ค่า power จากตัวแปร Global
     const power = window.throwingPower.value;
     this.initialVelocity = 15 * (power / 100);
@@ -87,9 +117,11 @@ AFRAME.registerComponent("throw-model", {
     const angleRad = (this.angle * Math.PI) / 180;
 
     const v0 = this.initialVelocity;
-    const y = this.defaultY + (v0 * Math.sin(angleRad) * t - 0.5 * this.gravity * t * t);
-    const z = this.defaultZ + (-v0 * Math.cos(angleRad) * t);
-    const x = this.defaultX 
+    const y =
+      this.defaultY +
+      (v0 * Math.sin(angleRad) * t - 0.5 * this.gravity * t * t);
+    const z = this.defaultZ + -v0 * Math.cos(angleRad) * t;
+    const x = this.defaultX;
 
     this.ufo.setAttribute("position", `${x} ${y} ${z}`);
 
@@ -99,17 +131,17 @@ AFRAME.registerComponent("throw-model", {
 
     // เช็คระยะทางและเปลี่ยนสีห่วง
     const ring = document.querySelector("#santa-model");
-    
+
     // ดึงค่าระยะห่างจริงจาก Global variable
     const markerZ = window.markerDistance.z;
     const markerY = window.markerDistance.y;
     const markerX = window.markerDistance.x;
-    
+
     // คำนวณช่วง tolerance สำหรับทุกแกน
     const toleranceZ = Math.abs(markerZ * 0.1);
-    const toleranceY = Math.abs(markerY * 0.15)+0.1;
-    const toleranceX = 0.3;
-    
+    const toleranceY = Math.abs(markerY * 0.15) + 0.1;
+    const toleranceX = 0.2;
+
     const minZ = markerZ - toleranceZ;
     const maxZ = markerZ + toleranceZ;
     const minY = markerY - toleranceY;
@@ -118,9 +150,14 @@ AFRAME.registerComponent("throw-model", {
     const maxX = markerX + toleranceX;
 
     // เช็คว่าทั้ง x, y และ z อยู่ในช่วง tolerance ของระยะห่างจริง
-    if (z >= minZ && z <= maxZ && 
-        y >= minY && y <= maxY && 
-        x >= minX && x <= maxX) {
+    if (
+      z >= minZ &&
+      z <= maxZ &&
+      y >= minY &&
+      y <= maxY &&
+      x >= minX &&
+      x <= maxX
+    ) {
       ring.setAttribute("material", "color: #00ff00");
     } else {
       ring.setAttribute("material", "color: #ff0000");
@@ -133,10 +170,16 @@ AFRAME.registerComponent("throw-model", {
       ring.setAttribute("material", "color: #ff0000");
       cancelAnimationFrame(this.animationLoop);
 
+      // เริ่มการแกว่งใหม่
+      this.startSway();
+
       // รีเซ็ตค่าแสดงผลโดยใช้ค่าจาก defaultPosition
-      document.getElementById("z-distance").textContent = this.defaultZ.toFixed(2);
-      document.getElementById("y-distance").textContent = this.defaultY.toFixed(2);
-      document.getElementById("x-distance").textContent = this.defaultX.toFixed(2);
+      document.getElementById("z-distance").textContent =
+        this.defaultZ.toFixed(2);
+      document.getElementById("y-distance").textContent =
+        this.defaultY.toFixed(2);
+      document.getElementById("x-distance").textContent =
+        this.defaultX.toFixed(2);
     } else {
       this.animationLoop = requestAnimationFrame(() => this.updatePosition());
     }
